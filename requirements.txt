@@ -2,6 +2,7 @@
 streamlit>=1.20.0
 plotly>=5.10.0
 scipy>=1.9.0
+statsmodels>=0.13.0
 
 # --- Librerie per l'Elaborazione Dati ---
 pandas>=1.5.0
