@@ -78,9 +78,9 @@ if not df.empty:
     df_filtrato = df[df['Stazione'].isin(stazioni_scelte)].copy()
     
     # --- LAYOUT A SCHEDE ---
-    tab_mappa, tab_teoria, tab_cpp, tab_trend, tab_distribuzione, tab_export = st.tabs([
+    tab_mappa, tab_teoria, tab_cpp, tab_trend, tab_distribuzione, tab_idraulica, tab_export = st.tabs([
         "🗺️ Mappa", "📖 Teoria Idrologica", "📈 CPP & Modelli", 
-        "⏳ Trend Storici", "📊 Outlier", "📥 Esporta Dati"
+        "⏳ Trend Storici", "📊 Outlier", "🌊 Sezione Idraulica", "📥 Esporta Dati"
     ])
 
     # ==========================================
@@ -243,6 +243,101 @@ if not df.empty:
                          title="Confronto Boxplot: Mediane e Nubifragi anomali (Outlier)")
         st.plotly_chart(fig_box, use_container_width=True)
 
+
+    # ==========================================
+    # TAB 6: SEZIONE IDRAULICA E BATTENTE
+    # ==========================================
+    with tab_idraulica:
+        st.header("Calcolo del Tirante Idrico (Moto Uniforme)")
+        st.write("Verifica l'altezza dell'acqua per una portata di progetto assegnata (es. la stima 200-ennale) in una sezione trapezoidale idealizzata del fiume.")
+        
+        col_inp, col_plot = st.columns([1, 2])
+        
+        with col_inp:
+            st.subheader("Parametri dell'Alveo")
+            Q_prog = st.number_input("Portata di Progetto Q (m³/s)", value=250.0, step=10.0)
+            b = st.number_input("Larghezza del fondo b (m)", value=15.0, step=1.0)
+            z = st.number_input("Pendenza scarpata z (H:V, es. 2 per 2:1)", value=2.0, step=0.5)
+            S = st.number_input("Pendenza longitudinale alveo i (m/m)", value=0.002, format="%.4f", step=0.0005)
+            Ks = st.number_input("Scabrezza Strickler Ks (m^(1/3)/s)", value=30.0, step=5.0, help="Fiumi naturali: 25-35. Canali in calcestruzzo: 60-70.")
+            
+        # Risolutore iterativo per trovare il tirante h (Metodo di Bisezione)
+        h_min, h_max = 0.001, 30.0
+        h_calc = 0.0
+        
+        for _ in range(100):
+            h_calc = (h_min + h_max) / 2
+            Area = h_calc * (b + z * h_calc)
+            Perimetro = b + 2 * h_calc * np.sqrt(1 + z**2)
+            R = Area / Perimetro
+            Q_stima = Ks * Area * (R**(2/3)) * np.sqrt(S)
+            
+            if Q_stima < Q_prog:
+                h_min = h_calc
+            else:
+                h_max = h_calc
+                
+        Area_finale = h_calc * (b + z * h_calc)
+        Velocita = Q_prog / Area_finale if Area_finale > 0 else 0
+        
+        with col_plot:
+            st.success(f"**Risultati Idraulici:** Tirante (Battente) = **{h_calc:.2f} m** | Velocità = **{Velocita:.2f} m/s** | Area = **{Area_finale:.2f} m²**")
+            
+            # --- DISEGNO DELLA SEZIONE CON PLOTLY ---
+            fig_sez = go.Figure()
+            
+            # Geometria del canale (aggiungiamo 2 metri di franco rispetto al livello dell'acqua per visualizzare bene gli argini)
+            H_tot = h_calc + 2.0
+            x_fondo_sx = -b/2
+            x_fondo_dx = b/2
+            x_argine_sx = x_fondo_sx - z * H_tot
+            x_argine_dx = x_fondo_dx + z * H_tot
+            
+            x_acqua_sx = x_fondo_sx - z * h_calc
+            x_acqua_dx = x_fondo_dx + z * h_calc
+            
+            # Poligono dell'Acqua (Azzurro semitrasparente)
+            fig_sez.add_trace(go.Scatter(
+                x=[x_acqua_sx, x_fondo_sx, x_fondo_dx, x_acqua_dx, x_acqua_sx],
+                y=[h_calc, 0, 0, h_calc, h_calc],
+                fill='toself',
+                fillcolor='rgba(0, 191, 255, 0.5)',
+                line=dict(color='blue', width=2),
+                name='Acqua',
+                hoverinfo='skip'
+            ))
+            
+            # Linea del Terreno/Alveo (Marrone scuro)
+            fig_sez.add_trace(go.Scatter(
+                x=[x_argine_sx, x_fondo_sx, x_fondo_dx, x_argine_dx],
+                y=[H_tot, 0, 0, H_tot],
+                mode='lines',
+                line=dict(color='#8B4513', width=5),
+                name='Profilo Alveo',
+                hoverinfo='skip'
+            ))
+            
+            # Linea tratteggiata per il Pelo Libero
+            fig_sez.add_trace(go.Scatter(
+                x=[x_argine_sx, x_argine_dx],
+                y=[h_calc, h_calc],
+                mode='lines',
+                line=dict(color='blue', width=1, dash='dash'),
+                name='Pelo Libero'
+            ))
+            
+            # Impostazioni asse per mantenere le proporzioni 1:1 (per non distorcere la pendenza visiva)
+            fig_sez.update_layout(
+                title="Sezione Trasversale del Fiume",
+                xaxis_title="Larghezza (m)",
+                yaxis_title="Altezza (m)",
+                yaxis=dict(scaleanchor="x", scaleratio=1), # Fondamentale: Mantiene le proporzioni geometriche reali!
+                template="plotly_white",
+                height=400,
+                showlegend=False
+            )
+            
+            st.plotly_chart(fig_sez, use_container_width=True)
     # ==========================================
     # TAB 6: ESPORTA DATI
     # ==========================================
