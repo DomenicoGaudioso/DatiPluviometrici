@@ -1,0 +1,12 @@
+# --- Librerie per la Dashboard (Web App) ---
+streamlit>=1.20.0
+plotly>=5.10.0
+scipy>=1.9.0
+
+# --- Librerie per l'Elaborazione Dati ---
+pandas>=1.5.0
+numpy>=1.20.0
+openpyxl>=3.0.10
+
+# --- Librerie per l'Estrazione dai PDF ---
+pdfplumber>=0.7.0
