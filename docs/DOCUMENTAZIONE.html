@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idro-Dashboard: Documentazione Tecnica</title>
+    <style>
+        :root {
+            --primary: #1a5276;
+            --accent: #2874a6;
+            --accent2: #27ae60;
+            --danger: #c0392b;
+            --warn: #d68910;
+            --bg: #fafbfc;
+            --card-bg: #ffffff;
+            --border: #d5d8dc;
+            --text: #2c3e50;
+            --text-light: #717d7e;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.65;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, #1a5276 0%, #2874a6 100%);
+            color: white;
+            padding: 60px 0 80px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: var(--bg);
+            clip-path: polygon(0 100%, 100% 100%, 100% 0);
+        }
+        .hero h1 {
+            font-size: 2.4rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        .hero .subtitle {
+            font-size: 1.15rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+        .hero .meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 25px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .badge.norm { background: #27ae60; border-color: #27ae60; }
+        .badge.ver { background: #2874a6; border-color: #2874a6; }
+        .badge.python { background: #1e8449; border-color: #1e8449; }
+        /* Navigation TOC */
+        .toc {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            padding: 25px;
+            margin: -40px relative 30px;
+            position: relative;
+            z-index: 10;
+        }
+        .toc h2 {
+            font-size: 1.1rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 8px;
+        }
+        .toc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+        .toc a {
+            display: block;
+            padding: 8px 12px;
+            color: var(--text);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.93rem;
+            transition: background 0.2s;
+        }
+        .toc a:hover { background: #f0f4f8; color: var(--accent); }
+        /* Sections */
+        section {
+            margin-bottom: 40px;
+        }
+        section h2 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 3px solid var(--accent);
+        }
+        section h3 {
+            font-size: 1.15rem;
+            color: var(--accent);
+            margin: 25px 0 12px;
+        }
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .card.info { border-left: 4px solid var(--accent); }
+        .card.success { border-left: 4px solid var(--accent2); }
+        .card.warning { border-left: 4px solid var(--warn); }
+        .card.danger { border-left: 4px solid var(--danger); }
+        /* Tables */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            font-size: 0.92rem;
+        }
+        thead {
+            background: var(--primary);
+            color: white;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+        th { font-weight: 600; }
+        tbody tr:nth-child(even) { background: #f8fafc; }
+        tbody tr:hover { background: #eef4fa; }
+        td { border-bottom: 1px solid var(--border); }
+        /* Formula Box */
+        .formula-box {
+            background: #f4f6f9;
+            border-left: 4px solid var(--accent);
+            padding: 18px 22px;
+            margin: 18px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .formula-box .label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .formula-box .formula {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.35rem;
+            color: var(--primary);
+        }
+        .formula-box .formula sub, .formula-box .formula sup {
+            font-size: 0.7rem;
+        }
+        /* Grid */
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        /* Lists */
+        ul, ol { margin-left: 25px; margin-bottom: 15px; }
+        li { margin-bottom: 8px; }
+        /* SVG Container */
+        .svg-container {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .svg-container h4 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        /* Footer */
+        footer {
+            background: var(--primary);
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+            text-align: center;
+        }
+        footer p { font-size: 0.9rem; opacity: 0.85; }
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 1.8rem; }
+            .hero { padding: 40px 0 60px; }
+            .toc { margin-top: -30px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <div class="container">
+        <h1>🌧️ Idro-Dashboard</h1>
+        <p class="subtitle">Analisi Precipitazioni Estreme e Curve di Possibilità Pluviometrica (CPP)</p>
+        <div class="meta">
+            <span class="badge ver">Versione 1.0</span>
+            <span class="badge norm">NTC 2018</span>
+            <span class="badge norm">D.Lgs. 152/2006</span>
+            <span class="badge python">Python 3.9+</span>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- TOC -->
+    <nav class="toc">
+        <h2>Indice dei Contenuti</h2>
+        <div class="toc-grid">
+            <a href="#panoramica">1. Panoramica Generale</a>
+            <a href="#funzionalita">2. Funzionalità Principali</a>
+            <a href="#input">3. Input e Parametri</a>
+            <a href="#output">4. Output Prodotti</a>
+            <a href="#normativa">5. Riferimenti Normativi</a>
+            <a href="#formule">6. Fondamenti Teorici</a>
+            <a href="#diagramma">7. Diagramma CPP</a>
+            <a href="#esempio">8. Esempio di Utilizzo</a>
+        </div>
+    </nav>
+
+    <!-- Section 1: Panoramica -->
+    <section id="panoramica">
+        <h2>1. Panoramica Generale</h2>
+        <p>Idro-Dashboard è una <strong>suite completa in Python</strong> per l'estrazione automatizzata dei dati dagli Annali Idrologici (ARPAE/Servizio Idrografico dell'Emilia-Romagna) e una <strong>Dashboard Web Interattiva</strong> per l'analisi statistica avanzata delle precipitazioni massime e la costruzione delle Curve di Possibilità Pluviometrica (CPP).</p>
+        
+        <div class="grid-2" style="margin-top: 20px;">
+            <div class="card info">
+                <h3>🎯 Pubblico Target</h3>
+                <ul>
+                    <li>Ingegneri idraulici e ambientali</li>
+                    <li>Geologi tecnici e ambientali</li>
+                    <li>Tecnici della Protezione Civile</li>
+                    <li>Studenti di ingegneria civile e ambientale</li>
+                </ul>
+            </div>
+            <div class="card info">
+                <h3>🏗️ Ambito di Applicazione</h3>
+                <ul>
+                    <li>Progettazione idraulica (acciaio, tombinature)</li>
+                    <li>Verifica ordinarie e straordinarie</li>
+                    <li>Stima portate di piena (metodo razionale)</li>
+                    <li>Analisi climatica e trend storici</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Funzionalità -->
+    <section id="funzionalita">
+        <h2>2. Funzionalità Principali</h2>
+        <p>L'applicazione si compose di due moduli fondamentali:</p>
+        
+        <h3>📂 Modulo di Estrazione Dati</h3>
+        <div class="card info">
+            <ul>
+                <li><strong>Lettura automatica dei PDF</strong> degli Annali Idrologici pubblicati da ARPAE</li>
+                <li><strong>Analisi testuale nativa</strong> per PDF vettoriali (es. 2024) - utilizzo di <code>pdfplumber</code></li>
+                <li><em>(Opzionale)</em> Motore OCR per le scansioni storiche (1916-1923) - supporto Tesseract</li>
+                <li><strong>Raggruppamento e pulizia</strong> dei dati con esportazione in Excel</li>
+            </ul>
+        </div>
+
+        <h3>🖥️ Modulo Dashboard (Streamlit)</h3>
+        <div class="card success">
+            <ul>
+                <li><strong>Mappa Interattiva</strong>: localizzazione geografica delle stazioni pluviometriche</li>
+                <li><strong>Calcolo CPP</strong>: interpolazione dei parametri <em>a</em> e <em>n</em> per vari Tempi di Ritorno</li>
+                <li><strong>Modelli Statistici</strong>: scelta dinamica tra Distribuzione di <strong>Gumbel (EVI)</strong> e <strong>GEV</strong></li>
+                <li><strong>Intervalli di Confidenza</strong>: visualizzazione dell'incertezza statistica (Fasce al 95%)</li>
+                <li><strong>Trend Climatici</strong>: analisi grafica delle serie storiche</li>
+                <li><strong>Esportazione</strong>: download CSV parametrico per HEC-RAS, SWMM</li>
+                <li><strong>Sezione Idraulica</strong>: calcolo tirante con formula di Strickler</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Section 3: Input -->
+    <section id="input">
+        <h2>3. Input e Parametri di Calcolo</h2>
+        
+        <h3>3.1 File di Input</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome File</th>
+                        <th>Formato</th>
+                        <th>Descrizione</th>
+                        <th>Posizione</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Master_Database_Pluviometrico.xlsx</code></td>
+                        <td>XLSX</td>
+                        <td>Database unificato contenente le precipitazioni massime annue per durate standard</td>
+                        <td><code>EmiliaRomagna/</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>3.2 Parametri Utente</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parametro</th>
+                        <th>Tipo</th>
+                        <th>Descrizione</th>
+                        <th>Valori Ammissibili</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Selezione Stazioni</td>
+                        <td>Multi-selezione</td>
+                        <td>Elenco stazioni pluviometriche da analizzare</td>
+                        <td>Da lista dinamica</td>
+                    </tr>
+                    <tr>
+                        <td>Tempo di Ritorno Tr</td>
+                        <td>Multi-selezione</td>
+                        <td>Periodo di ritorno per il calcolo delle precipitazioni</td>
+                        <td>10, 20, 30, 50, 100, 200, 500 anni</td>
+                    </tr>
+                    <tr>
+                        <td>Modello Statistico</td>
+                        <td>Radio button</td>
+                        <td>Distribuzione probabilistica dei valori estremi</td>
+                        <td>Gumbel (EVI), GEV</td>
+                    </tr>
+                    <tr>
+                        <td>Intervalli di Confidenza</td>
+                        <td>Checkbox</td>
+                        <td>Visualizza fasce al 95% (solo per Gumbel)</td>
+                        <td>On/Off</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>3.3 Dati del Database</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Campo</th>
+                        <th>Tipo</th>
+                        <th>Descrizione</th>
+                        <th>Unità</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Anno</code></td>
+                        <td>Intero</td>
+                        <td>Anno di riferimento della rilevazione</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td><code>Stazione</code></td>
+                        <td>Stringa</td>
+                        <td>Nome della stazione pluviometrica</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td><code>1h_mm</code></td>
+                        <td>Reale</td>
+                        <td>Precipitazione massima oraria</td>
+                        <td>mm</td>
+                    </tr>
+                    <tr>
+                        <td><code>3h_mm</code></td>
+                        <td>Reale</td>
+                        <td>Precipitazione massima su 3 ore</td>
+                        <td>mm</td>
+                    </tr>
+                    <tr>
+                        <td><code>6h_mm</code></td>
+                        <td>Reale</td>
+                        <td>Precipitazione massima su 6 ore</td>
+                        <td>mm</td>
+                    </tr>
+                    <tr>
+                        <td><code>12h_mm</code></td>
+                        <td>Reale</td>
+                        <td>Precipitazione massima su 12 ore</td>
+                        <td>mm</td>
+                    </tr>
+                    <tr>
+                        <td><code>24h_mm</code></td>
+                        <td>Reale</td>
+                        <td>Precipitazione massima giornaliera</td>
+                        <td>mm</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Section 4: Output -->
+    <section id="output">
+        <h2>4. Output Prodotti</h2>
+        
+        <h3>4.1 Risultati Tabellari</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Campo</th>
+                        <th>Descrizione</th>
+                        <th>Unità</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Stazione</code></td>
+                        <td>Nome della stazione analizzata</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td><code>Tr</code></td>
+                        <td>Tempo di Ritorno di progetto</td>
+                        <td>anni</td>
+                    </tr>
+                    <tr>
+                        <td><code>a</code></td>
+                        <td>Coefficiente della curva CPP</td>
+                        <td>mm/h<sup>n</sup></td>
+                    </tr>
+                    <tr>
+                        <td><code>n</code></td>
+                        <td>Esponente della curva CPP (pendenza)</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td><code>R²</code></td>
+                        <td>Coefficiente di determinazione della regressione</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td><code>Anni Dati</code></td>
+                        <td>Numero di anni di rilevazione disponibili</td>
+                        <td>-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>4.2 Output Grafici</h3>
+        <div class="card info">
+            <ul>
+                <li><strong>Grafici CPP interattivi</strong>: curve altezze-durate per vari Tr</li>
+                <li><strong>Mappa stazioni</strong>: posizionamento geografico su mappa</li>
+                <li><strong>Boxplot</strong>: distribuzione, mediane e outlier</li>
+                <li><strong>Trend storici</strong>: regressione OLS nel tempo</li>
+                <li><strong>Sezione trasversale</strong>: visualizzazione tirante idrico</li>
+            </ul>
+        </div>
+
+        <h3>4.3 File Esportabile</h3>
+        <div class="card success">
+            <p><strong>Formato:</strong> CSV con delimitatore punto e virgola (;) e separatore decimale virgola (,)</p>
+            <p><strong>Utilizzo:</strong> Import diretto in HEC-RAS, SWMM, RAFTS, Mohid, modelli idraulici 1D/2D</p>
+        </div>
+    </section>
+
+    <!-- Section 5: Normativa -->
+    <section id="normativa">
+        <h2>5. Riferimenti Normativi</h2>
+        
+        <div class="grid-2">
+            <div class="card info">
+                <h3>📚 Normativa Nazionale</h3>
+                <ul>
+                    <li><strong>NTC 2018</strong> (D.M. 17/01/2018) - Norme Tecniche per le Costruzioni</li>
+                    <li><strong>C.S.LL.PP. 2019</strong> - Circolare applicativa NTC 2018</li>
+                    <li><strong>D.Lgs. 152/2006</strong> - Norme in materia ambientale (TU Ambientale)</li>
+                </ul>
+            </div>
+            <div class="card info">
+                <h3>🌐 Linee Guida Regionali</h3>
+                <ul>
+                    <li><strong>ARPAE Emilia-Romagna</strong> - Annali Idrologici</li>
+                    <li><strong>Servizio Idrografico</strong> - Osservatorio delle precipitazioni</li>
+                    <li><strong>PAI</strong> - Piano Assetto Idrogeologico</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>Raccomandazioni Tecniche</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parametro</th>
+                        <th>Raccomandazione</th>
+                        <th>Riferimento</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Durate standard</td>
+                        <td>1h, 3h, 6h, 12h, 24h (minimo)</td>
+                        <td>NTC 2018 - Cap. 2</td>
+                    </tr>
+                    <tr>
+                        <td>Tempo ritorno minimo</td>
+                        <td>Tr = 50 anni (ordinarie), Tr = 200 anni (straordinarie)</td>
+                        <td>NTC 2018 - §2.1</td>
+                    </tr>
+                    <tr>
+                        <td>Lunghezza minima serie</td>
+                        <td>≥ 20 anni per analisi statistiche attendibili</td>
+                        <td>Linee guida ARPAE</td>
+                    </tr>
+                    <tr>
+                        <td>Distribuzione preferita</td>
+                        <td>Gumbel (EVI) per serie ≥ 30 anni</td>
+                        <td>CNR, ISO 435</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Section 6: Formule -->
+    <section id="formule">
+        <h2>6. Fondamenti Teorici</h2>
+        
+        <h3>6.1 Curva di Possibilità Pluviometrica (CPP)</h3>
+        <div class="formula-box">
+            <div class="label">Equazione del monomio</div>
+            <div class="formula">h(t) = a · t<sup>n</sup></div>
+        </div>
+        <p>dove:</p>
+        <ul>
+            <li><strong>h</strong> = altezza di precipitazione [mm]</li>
+            <li><strong>t</strong> = durata della precipitazione [ore]</li>
+            <li><strong>a</strong> = coefficiente dipendente dal Tempo di Ritorno [mm/h<sup>n</sup>]</li>
+            <li><strong>n</strong> = esponente caratteristico del luogo (0.30 &lt; n &lt; 0.50 per Italia)</li>
+        </ul>
+
+        <h3>6.2 Distribuzione di Gumbel (EVI)</h3>
+        <div class="formula-box">
+            <div class="label">Variable ridotta</div>
+            <div class="formula">y<sub>Tr</sub> = -ln[ -ln(1 - 1/Tr) ]</div>
+        </div>
+        <div class="formula-box">
+            <div class="label">Precipitazione di progetto</div>
+            <div class="formula">h<sub>Tr</sub> = u + y<sub>Tr</sub> / α</div>
+        </div>
+        <p>La stima dei parametri <em>u</em> (moda) e <em>α</em> (scala) avviene tramite il metodo dei momenti:</p>
+        <div class="formula-box">
+            <div class="label">Parametri stimati</div>
+            <div class="formula">α = π / (σ · √6) &nbsp;&nbsp;&nbsp; u = μ - (0.5772 / α)</div>
+        </div>
+        <p>Con <em>μ</em> = media campionaria, <em>σ</em> = deviazione standard campionaria.</p>
+
+        <h3>6.3 Distribuzione GEV (Generalized Extreme Value)</h3>
+        <div class="formula-box">
+            <div class="label">Funzione di distribuzione</div>
+            <div class="formula">H(x) = exp{ -[ 1 + ξ(x-μ)/σ ]<sup>-1/ξ</sup> }</div>
+        </div>
+        <p>dove <em>μ</em> = parametro di posizione, <em>σ</em> = parametro di scala, <em>ξ</em> = parametro di forma (shape). Il fitting avviene per maxima likelihood estimation (MLE).</p>
+        
+        <h3>6.4 Calcolo Idraulico (Tirante con Strickler)</h3>
+        <div class="formula-box">
+            <div class="label">Formula di Strickler</div>
+            <div class="formula">Q = K<sub>s</sub> · A · R<sup>2/3</sup> · i<sup>1/2</sup></div>
+        </div>
+        <div class="formula-box">
+            <div class="label">Geometria sezione trapezoide</div>
+            <div class="formula">A = h · (b + z·h) &nbsp;&nbsp;&nbsp; P = b + 2h√(1+z²) &nbsp;&nbsp;&nbsp; R = A/P</div>
+        </div>
+    </section>
+
+    <!-- Section 7: Diagramma -->
+    <section id="diagramma">
+        <h2>7. Diagramma CPP e Rappresentazione Grafica</h2>
+        
+        <div class="svg-container">
+            <h4>Curva di Possibilità Pluviometrica - Rappresentazione schematica</h4>
+            <svg width="700" height="400" viewBox="0 0 700 400" xmlns="http://www.w3.org/2000/svg">
+                <!-- Background -->
+                <rect width="700" height="400" fill="#fafbfc"/>
+                <rect x="60" y="20" width="620" height="330" fill="white" stroke="#dee2e6" stroke-width="1"/>
+                
+                <!-- Grid -->
+                <g stroke="#e5e8ea" stroke-width="1">
+                    <line x1="60" y1="80" x2="680" y2="80"/>
+                    <line x1="60" y1="140" x2="680" y2="140"/>
+                    <line x1="60" y1="200" x2="680" y2="200"/>
+                    <line x1="60" y1="260" x2="680" y2="260"/>
+                    <line x1="60" y1="320" x2="680" y2="320"/>
+                </g>
+                
+                <!-- Axes -->
+                <line x1="60" y1="350" x2="680" y2="350" stroke="#2c3e50" stroke-width="2"/>
+                <line x1="60" y1="350" x2="60" y2="20" stroke="#2c3e50" stroke-width="2"/>
+                
+                <!-- Labels -->
+                <text x="350" y="385" text-anchor="middle" font-size="13" fill="#2c3e50" font-family="Segoe UI">Durata t (ore)</text>
+                <text x="25" y="200" text-anchor="middle" font-size="13" fill="#2c3e50" font-family="Segoe UI" transform="rotate(-90,25,200)">Precipitazione h (mm)</text>
+                
+                <!-- X axis ticks -->
+                <g font-size="10" fill="#6c757d" text-anchor="middle">
+                    <text x="60" y="368">1</text>
+                    <text x="214" y="368">3</text>
+                    <text x="368" y="368">6</text>
+                    <text x="522" y="368">12</text>
+                    <text x="676" y="368">24</text>
+                </g>
+                
+                <!-- Y axis ticks -->
+                <g font-size="10" fill="#6c757d" text-anchor="end">
+                    <text x="50" y="324">20</text>
+                    <text x="50" y="264">40</text>
+                    <text x="50" y="204">60</text>
+                    <text x="50" y="144">80</text>
+                    <text x="50" y="84">100</text>
+                    <text x="50" y="34">120</text>
+                </g>
+                
+                <!-- Curves for different Tr -->
+                <!-- Tr = 10 years -->
+                <path d="M 60 315 Q 214 275 368 255 Q 522 235 676 220" stroke="#3498db" stroke-width="2.5" fill="none"/>
+                <text x="685" y="218" font-size="10" fill="#3498db" font-weight="600">Tr=10</text>
+                
+                <!-- Tr = 50 years -->
+                <path d="M 60 295 Q 214 250 368 225 Q 522 200 676 182" stroke="#e67e22" stroke-width="2.5" fill="none"/>
+                <text x="685" y="180" font-size="10" fill="#e67e22" font-weight="600">Tr=50</text>
+                
+                <!-- Tr = 100 years -->
+                <path d="M 60 280 Q 214 230 368 200 Q 522 172 676 152" stroke="#e74c3c" stroke-width="2.5" fill="none"/>
+                <text x="685" y="150" font-size="10" fill="#e74c3c" font-weight="600">Tr=100</text>
+                
+                <!-- Tr = 200 years -->
+                <path d="M 60 265 Q 214 210 368 175 Q 522 145 676 125" stroke="#9b59b6" stroke-width="2.5" fill="none"/>
+                <text x="685" y="123" font-size="10" fill="#9b59b6" font-weight="600">Tr=200</text>
+                
+                <!-- Confidence interval area for Tr=100 -->
+                <path d="M 60 265 Q 214 205 368 168 Q 522 135 676 112 L 676 188 Q 522 162 368 232 Q 214 255 60 298 Z" fill="rgba(231, 76, 60, 0.15)" stroke="none"/>
+                <text x="620" y="60" font-size="9" fill="#e74c3c">IC 95%</text>
+                
+                <!-- Data points -->
+                <g fill="#2c3e50">
+                    <circle cx="60" cy="310" r="4"/>
+                    <circle cx="214" cy="270" r="4"/>
+                    <circle cx="368" cy="235" r="4"/>
+                    <circle cx="522" cy="205" r="4"/>
+                    <circle cx="676" cy="180" r="4"/>
+                </g>
+                <text x="200" y="55" font-size="10" fill="#6c757d">Legenda: Curva CPP monomiale (h = a·t^n)</text>
+            </svg>
+        </div>
+
+        <div class="grid-2">
+            <div class="card info">
+                <h4>💡 Come leggere il grafico</h4>
+                <ul>
+                    <li>Asse <strong>X</strong>: durate standard (1h - 24h)</li>
+                    <li>Asse <strong>Y</strong>: altezze di precipitazione [mm]</li>
+                    <li>Curve: una per ogni Tr desiderato</li>
+                    <li>Area ombreggiata: intervallo di confidenza (95%)</li>
+                    <li>Punti: precipitazioni osservate nel database</li>
+                </ul>
+            </div>
+            <div class="card info">
+                <h4>📐 Linearizzazione</h4>
+                <p>Attivando la scala <strong>Log-Log</strong> le curve CPP diventano lineari:</p>
+                <div class="formula-box">
+                    <div class="label">Forma linearizzata</div>
+                    <div class="formula">log h = log a + n · log t</div>
+                </div>
+                <p>L'interpolazione lineare (OLS) su log-log fornisce i parametri <em>a</em> = exp(intercept), <em>n</em> = slope.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 8: Esempio -->
+    <section id="esempio">
+        <h2>8. Esempio di Utilizzo</h2>
+        
+        <h3>Caso di studio: Stazione di Bologna</h3>
+        
+        <div class="grid-2">
+            <div>
+                <h3>Dati di input</h3>
+                <div class="card info">
+                    <ul>
+                        <li><strong>Stazione:</strong> Bologna</li>
+                        <li><strong>Tempo di Ritorno:</strong> Tr = 50 anni</li>
+                        <li><strong>Modello:</strong> Gumbel (EVI)</li>
+                        <li><strong>Serie storica:</strong> 45 anni (1979-2023)</li>
+                    </ul>
+                </div>
+            </div>
+            <div>
+                <h3>Risultati ottenuti</h3>
+                <div class="card success">
+                    <ul>
+                        <li><strong>a</strong> = 35.82 mm/h<sup>n</sup></li>
+                        <li><strong>n</strong> = 0.382</li>
+                        <li><strong>R²</strong> = 0.9824</li>
+                        <li><strong>Tr</strong> = 50 anni</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <h3>Verifica rapida</h3>
+        <p>Per una pioggia di durata <strong>t = 6 ore</strong> e Tr = 50 anni, la precipitazione di progetto:</p>
+        <div class="formula-box">
+            <div class="label">Calcolo diretto</div>
+            <div class="formula">h = 35.82 · 6<sup>0.382</sup> = 35.82 · 2.24 ≈ 80.2 mm</div>
+        </div>
+        
+        <h3>Importazione in HEC-RAS</h3>
+        <div class="card warning">
+            <h4>⚠️ Formato CSV richiesto</h4>
+            <p>Il file esportato presenta <strong>punto e virgola (;)</strong> come delimitatore e <strong>virgola (,)</strong> come separatore decimale per compatibilità con i software di modellazione idraulica legacy.</p>
+        </div>
+    </section>
+
+</div>
+
+<footer>
+    <div class="container">
+        <p><strong>Idro-Dashboard</strong> — Documentazione Tecnica</p>
+        <p>Progettazione idraulica conforme NTC 2018 · Analisi statistica precipitazioni estreme</p>
+        <p style="margin-top: 15px; font-size: 0.8rem;">Questo documento ha finalità puramente tecniche. L'utente è responsabile della verifica dei risultati secondo la normativa vigente.</p>
+    </div>
+</footer>
+
+</body>
+</html>
