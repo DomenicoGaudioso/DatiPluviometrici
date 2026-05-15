@@ -1,24 +1,18 @@
-import streamlit as st
+﻿import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 from scipy.stats import linregress, genextreme
 import os
-
-# --- FUNZIONE HELPER PER LA TRASPARENZA ---
-def hex_to_rgba(hex_color, opacity=0.1):
-    """Converte un colore HEX in RGBA per Plotly per garantire la trasparenza delle fasce."""
-    hex_color = hex_color.lstrip('#')
-    if len(hex_color) == 6:
-        r, g, b = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
-        return f'rgba({r}, {g}, {b}, {opacity})'
-    return hex_color
+from word_report import genera_relazione_word
+from src import (formule_cpp_base, formule_sezione_trapezoidale,
+                 hex_to_rgba, tirante_trapezoidale_bisezione)
 
 # --- CONFIGURAZIONE PAGINA ---
-st.set_page_config(page_title="Dashboard Idrologica Avanzata", page_icon="🌧️", layout="wide")
+st.set_page_config(page_title="Dashboard Idrologica Avanzata", page_icon="ðŸŒ§ï¸", layout="wide")
 
-st.title("🌧️ Dashboard Idrologica: Curva di Possibilità Pluviometrica (CPP)")
+st.title("ðŸŒ§ï¸ Dashboard Idrologica: Curva di PossibilitÃ  Pluviometrica (CPP)")
 st.markdown("Strumento avanzato per l'analisi spaziale, statistica e climatica delle precipitazioni estreme.")
 
 # --- GESTIONE PERCORSO FILE ---
@@ -37,7 +31,7 @@ COORDINATE_ER = {
 @st.cache_data
 def load_data(file_path):
     if not os.path.exists(file_path):
-        st.error(f"❌ File non trovato in: {os.path.abspath(file_path)}")
+        st.error(f"âŒ File non trovato in: {os.path.abspath(file_path)}")
         return pd.DataFrame()
     return pd.read_excel(file_path)
 
@@ -45,7 +39,7 @@ df = load_data(PATH_COMPLETO)
 
 if not df.empty:
     # --- SIDEBAR: IMPOSTAZIONI ---
-    st.sidebar.header("⚙️ Configurazione Analisi")
+    st.sidebar.header("âš™ï¸ Configurazione Analisi")
     
     stazioni_disponibili = sorted(df['Stazione'].dropna().unique())
     stazioni_scelte = st.sidebar.multiselect(
@@ -64,7 +58,7 @@ if not df.empty:
     st.sidebar.subheader("Modello Statistico")
     modello_scelto = st.sidebar.radio("Distribuzione dei Valori Estremi:", ["Gumbel (EVI)", "GEV (Generalized)"])
     
-    # Se l'utente sceglie più stazioni, spengiamo le fasce di default per non fare confusione
+    # Se l'utente sceglie piÃ¹ stazioni, spengiamo le fasce di default per non fare confusione
     default_ci = True if len(stazioni_scelte) == 1 else False
     mostra_ci = st.sidebar.checkbox("Mostra Intervalli di Confidenza 95%", value=default_ci)
     
@@ -77,11 +71,10 @@ if not df.empty:
 
     df_filtrato = df[df['Stazione'].isin(stazioni_scelte)].copy()
     
-    # --- LAYOUT A SCHEDE ---
-    tab_mappa, tab_teoria, tab_cpp, tab_trend, tab_distribuzione, tab_idraulica, tab_export = st.tabs([
-        "🗺️ Mappa", "📖 Teoria Idrologica", "📈 CPP & Modelli", 
-        "⏳ Trend Storici", "📊 Outlier", "🌊 Sezione Idraulica", "📥 Esporta Dati"
-    ])
+    # --- SCHERMATA UNICA IN STILE RELAZIONE ---
+    tab_mappa, tab_teoria, tab_cpp, tab_trend, tab_distribuzione, tab_idraulica, tab_export = [
+        st.container() for _ in range(7)
+    ]
 
     # ==========================================
     # TAB 1: MAPPA
@@ -114,6 +107,8 @@ if not df.empty:
         with col2:
             st.success("**Distribuzione GEV**")
             st.latex(r"H(x) = \exp\left\{-\left[1 + \xi\left(\frac{x-\mu}{\sigma}\right)\right]^{-1/\xi}\right\}")
+        st.subheader("Formule operative")
+        st.dataframe(pd.DataFrame(formule_cpp_base()), hide_index=True, use_container_width=True)
 
     # ==========================================
     # TAB 3: CPP E MODELLI
@@ -185,7 +180,7 @@ if not df.empty:
                         dati_finali_cpp.append({
                             "Stazione": stazione, "Tr": Tr, 
                             "a": round(a_param, 2), "n": round(n_param, 3), 
-                            "R²": round(r_value**2, 4), "Anni Dati": N_anni
+                            "RÂ²": round(r_value**2, 4), "Anni Dati": N_anni
                         })
                         
                         h_line = a_param * (t_line ** n_param)
@@ -255,34 +250,29 @@ if not df.empty:
         
         with col_inp:
             st.subheader("Parametri dell'Alveo")
-            Q_prog = st.number_input("Portata di Progetto Q (m³/s)", value=250.0, step=10.0)
+            Q_prog = st.number_input("Portata di Progetto Q (mÂ³/s)", value=250.0, step=10.0)
             b = st.number_input("Larghezza del fondo b (m)", value=15.0, step=1.0)
             z = st.number_input("Pendenza scarpata z (H:V, es. 2 per 2:1)", value=2.0, step=0.5)
             S = st.number_input("Pendenza longitudinale alveo i (m/m)", value=0.002, format="%.4f", step=0.0005)
             Ks = st.number_input("Scabrezza Strickler Ks (m^(1/3)/s)", value=30.0, step=5.0, help="Fiumi naturali: 25-35. Canali in calcestruzzo: 60-70.")
             
-        # Risolutore iterativo per trovare il tirante h (Metodo di Bisezione)
-        h_min, h_max = 0.001, 30.0
-        h_calc = 0.0
-        
-        for _ in range(100):
-            h_calc = (h_min + h_max) / 2
-            Area = h_calc * (b + z * h_calc)
-            Perimetro = b + 2 * h_calc * np.sqrt(1 + z**2)
-            R = Area / Perimetro
-            Q_stima = Ks * Area * (R**(2/3)) * np.sqrt(S)
-            
-            if Q_stima < Q_prog:
-                h_min = h_calc
-            else:
-                h_max = h_calc
-                
-        Area_finale = h_calc * (b + z * h_calc)
-        Velocita = Q_prog / Area_finale if Area_finale > 0 else 0
+        risultato_sezione = tirante_trapezoidale_bisezione(Q_prog, b, z, Ks, S)
+        h_calc = risultato_sezione["tirante_m"]
+        Area_finale = risultato_sezione["area_m2"]
+        Velocita = risultato_sezione["velocita_ms"]
+        df_formule_sezione = pd.DataFrame(
+            formule_sezione_trapezoidale(risultato_sezione, b, z, Ks, S)
+        )
         
         with col_plot:
-            st.success(f"**Risultati Idraulici:** Tirante (Battente) = **{h_calc:.2f} m** | Velocità = **{Velocita:.2f} m/s** | Area = **{Area_finale:.2f} m²**")
-            
+            st.subheader("Risultati idraulici")
+            st.dataframe(pd.DataFrame([
+                {"Parametro": "Tirante / battente", "Valore": f"{h_calc:.2f}", "Unita": "m"},
+                {"Parametro": "Velocita media", "Valore": f"{Velocita:.2f}", "Unita": "m/s"},
+                {"Parametro": "Area bagnata", "Valore": f"{Area_finale:.2f}", "Unita": "m2"},
+            ]), hide_index=True, use_container_width=True)
+            st.dataframe(df_formule_sezione, hide_index=True, use_container_width=True)
+
             # --- DISEGNO DELLA SEZIONE CON PLOTLY ---
             fig_sez = go.Figure()
             
@@ -343,6 +333,43 @@ if not df.empty:
     # ==========================================
     with tab_export:
         if 'dati_finali_cpp' in locals() and len(dati_finali_cpp) > 0:
-            csv = pd.DataFrame(dati_finali_cpp).to_csv(index=False, sep=';', decimal=',').encode('utf-8')
+            df_parametri_cpp = pd.DataFrame(dati_finali_cpp)
+            csv = df_parametri_cpp.to_csv(index=False, sep=';', decimal=',').encode('utf-8')
             st.download_button("Scarica Parametri CPP (CSV)", data=csv, file_name="Parametri_CPP.csv", mime="text/csv")
-            st.info("Per esportare i grafici in alta qualità (PNG), usa l'icona della macchina fotografica in alto a destra su ogni grafico.")
+            formule_word = pd.DataFrame(formule_cpp_base())
+            tabelle_word = [("Parametri CPP stimati", df_parametri_cpp)]
+            if 'df_formule_sezione' in locals():
+                tabelle_word.append(("Formule sezione trapezoidale", df_formule_sezione))
+            if 'risultato_sezione' in locals():
+                tabelle_word.append(("Risultati idraulici sezione", pd.DataFrame([
+                    {"Parametro": "Tirante / battente", "Valore": f"{h_calc:.2f}", "Unita": "m", "Esito/nota": "-"},
+                    {"Parametro": "Velocita media", "Valore": f"{Velocita:.2f}", "Unita": "m/s", "Esito/nota": "-"},
+                    {"Parametro": "Area bagnata", "Valore": f"{Area_finale:.2f}", "Unita": "m2", "Esito/nota": "-"},
+                ])))
+            word_bytes = genera_relazione_word(
+                "Relazione tecnica - Curva di possibilita pluviometrica",
+                "Analisi statistica delle precipitazioni estreme e parametri CPP tabellati.",
+                [
+                    {"Parametro": "Stazioni selezionate", "Valore": ", ".join(stazioni_scelte), "Unita": "-", "Esito/nota": "-"},
+                    {"Parametro": "Tempi di ritorno", "Valore": ", ".join(str(x) for x in tempi_ritorno), "Unita": "anni", "Esito/nota": "-"},
+                    {"Parametro": "Modello statistico", "Valore": modello_scelto, "Unita": "-", "Esito/nota": "intervalli 95%" if mostra_ci else "-"},
+                    {"Parametro": "Archivio dati", "Valore": NOME_FILE, "Unita": "-", "Esito/nota": CARTELLA},
+                ],
+                formule_word,
+                tabelle_word,
+                [
+                    "La relazione usa gli stessi parametri stimati e mostrati nella schermata Streamlit.",
+                    "Le curve e i grafici interattivi restano disponibili nella UI; il documento Word privilegia formulazione e tabelle verificabili.",
+                ],
+                figures=[
+                    {"title": "Parametro CPP a per tempo di ritorno", "df": df_parametri_cpp, "x": "Tr", "y": "a", "kind": "line", "ylabel": "a [mm/h^n]"},
+                    {"title": "Parametro CPP n per tempo di ritorno", "df": df_parametri_cpp, "x": "Tr", "y": "n", "kind": "line", "ylabel": "n [-]"},
+                ],
+            )
+            st.download_button(
+                "Scarica relazione Word",
+                data=word_bytes,
+                file_name="relazione_cpp_pluviometrica.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            )
+            st.info("Per esportare i grafici in alta qualitÃ  (PNG), usa l'icona della macchina fotografica in alto a destra su ogni grafico.")

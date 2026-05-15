@@ -1,0 +1,18 @@
+Obiettivo dell'app:
+Dashboard idrologica per analisi pluviometrica, stima delle curve di possibilita
+pluviometrica (CPP) e passaggio controllato verso i calcoli idraulici a valle.
+
+Nesso logico nella suite:
+1. DatiPluviometrici elabora le serie storiche e restituisce parametri CPP,
+   altezze/intensita di progetto e un primo controllo di sezione idraulica.
+2. IdraulicaPiattaforma usa l'intensita di pioggia di progetto per stimare
+   portate meteoriche e numero/layout delle bocchette.
+3. Condotte e Pompe usano le portate di progetto per verificare deflusso,
+   prevalenze, potenza e margini impiantistici.
+
+Implementazione richiesta:
+- mantenere la UI Streamlit in app.py;
+- concentrare la logica numerica riusabile in src.py;
+- aggiungere benchmark JSON ripetibili in test/benchmark;
+- evitare formule nascoste nell'interfaccia quando diventano dipendenze per app
+  a valle.

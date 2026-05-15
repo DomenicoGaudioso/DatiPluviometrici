@@ -8,6 +8,8 @@ statsmodels>=0.13.0
 pandas>=1.5.0
 numpy>=1.20.0
 openpyxl>=3.0.10
+python-docx>=1.1
 
 # --- Librerie per l'Estrazione dai PDF ---
 pdfplumber>=0.7.0
+matplotlib>=3.7

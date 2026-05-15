@@ -1,0 +1,23 @@
+{
+  "repo": "DatiPluviometrici",
+  "suite": "Idraulica",
+  "role": "origine idrologica",
+  "logic_chain": "pioggia -> drenaggio piattaforma -> condotte -> pompe",
+  "upstream": [],
+  "downstream": ["IdraulicaPiattaforma", "Condotte", "Pompe"],
+  "primary_inputs": [
+    "serie storiche di precipitazione",
+    "durate di pioggia",
+    "tempi di ritorno"
+  ],
+  "primary_outputs": [
+    "parametri CPP a e n",
+    "altezze di pioggia h(Tr,t)",
+    "intensita di progetto",
+    "tirante in sezione trapezoidale"
+  ],
+  "implementation_notes": [
+    "La logica numerica riusabile vive in src.py.",
+    "La UI Streamlit resta in app.py."
+  ]
+}
